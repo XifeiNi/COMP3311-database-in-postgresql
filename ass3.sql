@@ -204,29 +204,69 @@ create or replace view class_course_term(class_id, course_id, term_id)
 	join courses co 
 	on co.id = cla.course_id;
 
+-- create weekday table
+create table weekdays (
+	name text,
+	day integer,
+	primary key(day)
+);
+
+insert into weekdays values
+ ('Mon', 1),
+ ('Tue', 2),
+ ('Wed', 3),
+ ('Thu', 4),
+ ('Fri', 5),
+ ('Sat', 6),
+ ('Sun', 7)
+;
+
 create or replace view unsw_rooms(room_id)
 	as select r.id from rooms r 
 	where r.code like 'K%';
 
 create or replace view meeting_term_t1(room_id, day, start_time, end_time, weeks_binary, term_id) 
-	as select m.room_id, m.day, m.start_time, m.end_time, m.weeks_binary, c.term_id 
+	as select m.room_id, w.day, m.start_time, m.end_time, m.weeks_binary, c.term_id 
 	from meetings m join class_course_term c 
 	on c.class_id = m.class_id
 	join unsw_rooms u on m.room_id = u.room_id
+	join weekdays w on m.day::text = w.name::text
 	where c.term_id = 5193;
 
 create or replace view meeting_term_t2(room_id, day, start_time, end_time, weeks_binary, term_id)
-        as select m.room_id, m.day, m.start_time, m.end_time, m.weeks_binary, c.term_id
+        as select m.room_id, w.day, m.start_time, m.end_time, m.weeks_binary, c.term_id
         from meetings m join class_course_term c
         on c.class_id = m.class_id
 	join unsw_rooms u on m.room_id = u.room_id
-        where c.term_id = 5196;
+        join weekdays w on m.day::text = w.name::text
+	where c.term_id = 5196;
 
 create or replace view meeting_term_t3(room_id, day, start_time, end_time, weeks_binary, term_id)
-        as select m.room_id, m.day, m.start_time, m.end_time, m.weeks_binary, c.term_id
+        as select m.room_id, w.day, m.start_time, m.end_time, m.weeks_binary, c.term_id
         from meetings m join class_course_term c
         on c.class_id = m.class_id
 	join unsw_rooms u on m.room_id = u.room_id
+	join weekdays w on m.day::text = w.name::text
         where c.term_id = 5199;
 
+create or replace function
+	get_total_hour(room integer) returns integer
+	as $$
+	declare
+		count integer;
+		roomre Record;
+		lastday text;
+		lastend integer;
+	begin
+		count := 0;
 
+		for i in 1..10 
+		loop
+			for roomre in (select * from meeting_term_t3 where room_id = room)
+			loop
+				continue when (roomre.weeks_binary)[i]::integer = 0;
+			end loop;
+		end loop;
+		return count;
+	end;	
+	$$ language plpgsql;
