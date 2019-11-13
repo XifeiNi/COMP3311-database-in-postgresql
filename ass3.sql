@@ -250,23 +250,178 @@ create or replace view meeting_term_t3(room_id, day, start_time, end_time, weeks
         where c.term_id = 5199;
 
 create or replace function
-	get_total_hour(room integer) returns integer
+	time_diff(time1 integer, time2 integer) returns float
 	as $$
 	declare
-		count integer;
+		count float;
+	begin
+		count := abs(time1 - time2)/100 + abs(time1%100 - time2%100)/60.0; 
+		return count;		
+	end;
+	$$ language plpgsql;
+
+create or replace function
+	get_total_hour_t3(room integer) returns integer
+	as $$
+	declare
+		count float;
 		roomre Record;
-		lastday text;
+		lastday integer;
 		lastend integer;
 	begin
-		count := 0;
-
+		count := 0.0;
+		-- Set this as the largest
 		for i in 1..10 
 		loop
-			for roomre in (select * from meeting_term_t3 where room_id = room)
+			lastday := 7;
+                	lastend := 2400;
+			for roomre in (select * from meeting_term_t3 where room_id = room order by day, start_time)
 			loop
-				continue when (roomre.weeks_binary)[i]::integer = 0;
+				continue when substring(roomre.weeks_binary, i, 1)::integer = 0;
+				if roomre.day = lastday and roomre.start_time < lastend then
+					if roomre.end_time > lastend then
+						count := count + time_diff(lastend, roomre.end_time);
+					end if;
+				else
+					count := count + time_diff(roomre.start_time, roomre.end_time);	
+				end if;
+				if count >= 200 then
+					return 1;
+				end if;
+				if lastday = roomre.day and roomre.end_time > lastend then
+					lastend := roomre.end_time;
+				elsif lastday <> roomre.day then
+					lastend := roomre.end_time;
+				end if;
+				lastday := roomre.day;
+				-- RAISE INFO '%','The current value of count ' || count;
 			end loop;
+			-- RAISE INFO '%','The current value of c ' || count;
 		end loop;
-		return count;
+		if count >= 200 then
+			return 1;
+		else
+			return 0;
+		end if;
 	end;	
 	$$ language plpgsql;
+
+create or replace function
+	get_total_hour_t2(room integer) returns integer
+	as $$
+	declare
+		count float;
+		roomre Record;
+		lastday integer;
+		lastend integer;
+	begin
+		count := 0.0;
+		-- Set this as the largest
+		for i in 1..10 
+		loop
+			lastday := 7;
+                	lastend := 2400;
+			for roomre in (select * from meeting_term_t2 where room_id = room order by day, start_time)
+			loop
+				continue when substring(roomre.weeks_binary, i, 1)::integer = 0;
+				if roomre.day = lastday and roomre.start_time < lastend then
+					if roomre.end_time > lastend then
+						count := count + time_diff(lastend, roomre.end_time);
+					end if;
+				else
+					count := count + time_diff(roomre.start_time, roomre.end_time);	
+				end if;
+				if count >= 200 then
+					return 1;
+				end if;
+				if lastday = roomre.day and roomre.end_time > lastend then
+					lastend := roomre.end_time;
+				elsif lastday <> roomre.day then
+					lastend := roomre.end_time;
+				end if;
+				lastday := roomre.day;
+				-- RAISE INFO '%','The current value of count ' || count;
+			end loop;
+			-- RAISE INFO '%','The current value of c ' || count;
+		end loop;
+		if count >= 200 then
+			return 1;
+		else
+			return 0;
+		end if;
+	end;	
+	$$ language plpgsql;
+
+
+create or replace function
+	get_total_hour_t1(room integer) returns integer
+	as $$
+	declare
+		count float;
+		roomre Record;
+		lastday integer;
+		lastend integer;
+	begin
+		count := 0.0;
+		-- Set this as the largest
+		for i in 1..10 
+		loop
+			lastday := 7;
+                	lastend := 2400;
+			for roomre in (select * from meeting_term_t1 where room_id = room order by day, start_time)
+			loop
+				continue when substring(roomre.weeks_binary, i, 1)::integer = 0;
+				if roomre.day = lastday and roomre.start_time < lastend then
+					if roomre.end_time > lastend then
+						count := count + time_diff(lastend, roomre.end_time);
+					end if;
+				else
+					count := count + time_diff(roomre.start_time, roomre.end_time);	
+				end if;
+				if count >= 200 then
+					return 1;
+				end if;
+				if lastday = roomre.day and roomre.end_time > lastend then
+					lastend := roomre.end_time;
+				elsif lastday <> roomre.day then
+					lastend := roomre.end_time;
+				end if;
+				lastday := roomre.day;
+				-- RAISE INFO '%','The current value of count ' || count;
+			end loop;
+			-- RAISE INFO '%','The current value of c ' || count;
+		end loop;
+		if count >= 200 then
+			return 1;
+		else
+			return 0;
+		end if;
+	end;	
+	$$ language plpgsql;
+
+create type id_to_boolean as (
+	"room" integer, "boolean" integer
+);
+
+create or replace function
+	is_utilized_t3(id text) returns setof id_to_boolean
+	as $$
+		select u.room_id as "room", get_total_hour_t3(u.room_id) as "boolean"
+		from unsw_rooms u
+	$$ language sql;
+
+ 
+create or replace function
+	is_utilized_t2(id text) returns setof id_to_boolean
+	as $$
+		select u.room_id as "room", get_total_hour_t2(u.room_id) as "boolean"
+		from unsw_rooms u
+	$$ language sql;
+
+ 
+create or replace function
+	is_utilized_t1(id text) returns setof id_to_boolean
+	as $$
+		select u.room_id as "room", get_total_hour_t1(u.room_id) as "boolean"
+		from unsw_rooms u
+	$$ language sql; 
