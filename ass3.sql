@@ -1,4 +1,4 @@
--- COMP3311 19T3 Assignment 3
+
 -- Helper views and functions (if needed)
 
 -- Q1
@@ -454,4 +454,16 @@ INSERT INTO room_status_t3
 SELECT u.room_id, get_total_hour_t3(u.room_id) FROM unsw_rooms u;
 
 -- Q8 
+create or replace view class_meeting_times(class_id, course_id, type_id, start_time, end_time, day)
+	as select c.id, c.course_id, c.type_id, m.start_time, m.end_time, w.day 
+	from meetings m join classes c 
+	on c.id = m.class_id 
+	join weekdays w 
+	on w.name::text = m.day::text;
 
+create or replace view subject_t3_meeting(subject_id, class_id, type_id, start_time, end_time, day)
+         as select c.subject_id, m.class_id, m.type_id, m.start_time, m.end_time, m.day 
+         from class_meeting_time m 
+         join courses c 
+         on c.id = m.course_id 
+         where c.term_id = 5199;
