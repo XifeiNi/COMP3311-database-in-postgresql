@@ -425,3 +425,30 @@ create or replace function
 		select u.room_id as "room", get_total_hour_t1(u.room_id) as "boolean"
 		from unsw_rooms u
 	$$ language sql; 
+-- a new solution
+create table room_status_t1 (
+        room_id integer,
+        status integer,
+        primary key(room_id)
+);
+
+create table room_status_t2 (
+        room_id integer,
+        status integer,
+        primary key(room_id)
+);
+
+create table room_status_t3 (
+        room_id integer,
+        status integer,
+        primary key(room_id)
+);
+
+INSERT INTO room_status_t1
+SELECT u.room_id, get_total_hour_t1(u.room_id) FROM unsw_rooms u;
+
+INSERT INTO room_status_t2
+SELECT u.room_id, get_total_hour_t2(u.room_id) FROM unsw_rooms u;
+
+INSERT INTO room_status_t3
+SELECT u.room_id, get_total_hour_t3(u.room_id) FROM unsw_rooms u;
