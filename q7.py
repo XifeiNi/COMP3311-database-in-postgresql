@@ -4,8 +4,8 @@ import cs3311
 conn = cs3311.connect()
 
 cur = conn.cursor()
-
-all_unsw_rooms = 508
+cur.execute("select count(room_id) from unsw_rooms")
+all_unsw_rooms = cur.fetchall()[0][0]
 if len(sys.argv) > 1:
 	if sys.argv[1] == '19T1':
 		cur.execute("select * from room_status_t1")

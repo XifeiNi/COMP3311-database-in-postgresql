@@ -452,3 +452,6 @@ SELECT u.room_id, get_total_hour_t2(u.room_id) FROM unsw_rooms u;
 
 INSERT INTO room_status_t3
 SELECT u.room_id, get_total_hour_t3(u.room_id) FROM unsw_rooms u;
+
+-- Q8 
+
