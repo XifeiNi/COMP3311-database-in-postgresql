@@ -13,11 +13,26 @@ def preprocess(course, ct, fetch):
 	course_time = defaultdict(list)
 	class_map = defaultdict(list)
 	for record in fetch:
-		class_map[(record[1], record[2])].append([record[3], record[4], record[5]])
+		class_map[(record[1], record[2])].append([record[5], record[3], record[4]])
 	for key in class_map:
 		course_time[key[1]].append(class_map[key])
 	ct[course] = course_time
-
+def clash(combinations, time_slot):
+	intervals = []
+	combinations.append(time_slot)
+	for slot in combinations:
+		for time in slot.time:
+			intervals.append(time)
+	lastday = 7
+	lasttime = 0000
+	for interval in sorted(intervals):
+		#print(interval[0])
+		if interval[0] == lastday and interval[1] < lasttime:
+			return False
+		lasttime = int(interval[2])
+		lastday = int(interval[0])
+	return True
+				
 def types(ct):
 	ret = 0
 	for key in ct:
@@ -46,9 +61,10 @@ def dfs(num_type,index, ct, curr_com, results):
 		return
 
 	for time_slots in ct[index]:
-		curr_com.append(time_slots)
-		dfs(num_type, index + 1, ct, curr_com, results)
-		curr_com.pop()
+		if clash(list(curr_com), time_slots):
+			curr_com.append(time_slots)
+			dfs(num_type, index + 1, ct, curr_com, results)
+			curr_com.pop()
 			
 
 conn = cs3311.connect()
