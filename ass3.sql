@@ -1,4 +1,4 @@
-
+-- COMP3311 19T3 Assignment 3	
 -- Helper views and functions (if needed)
 
 -- Q1
@@ -467,3 +467,20 @@ create or replace view subject_t3_meeting(subject_id, class_id, type_id, start_t
          join courses c 
          on c.id = m.course_id 
          where c.term_id = 5199;
+
+create or replace view code_t3_meeting(subject_code, class_id, type_id, start_time, end_time, day)
+	as select s.code, c.class_id, c.type_id, c.start_time, c.end_time, c.day 
+	from subject_t3_meeting c 
+	join subjects s 
+	on s.id = c.subject_id;
+
+create or replace function
+	get_course_record(course text) returns table(code text, class_id integer, type_id integer, start_time integer, end_time integer, day integer)
+	as $$
+	begin
+		return query
+		select subject_code::text, c.class_id::integer, c.type_id::integer, c.start_time::integer, c.end_time::integer, c.day::integer
+		from code_t3_meeting c
+		where c.subject_code = course;
+	end;
+	$$ language plpgsql;
