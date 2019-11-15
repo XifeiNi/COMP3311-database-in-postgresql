@@ -77,7 +77,7 @@ def hoursOnCampus(combination):
 	for day in daysMap:
 		diff = time_diff(daysMap[day][-1][1], daysMap[day][0][0])
 		time += diff
-		time += 1
+		time += 2
 		early-=day
 	return [time, numDays, early]	
 
