@@ -21,6 +21,8 @@ def clash(combinations, time_slot):
 	intervals = []
 	combinations.append(time_slot)
 	for slot in combinations:
+		if slot.typed == 16:
+			continue
 		for time in slot.time:
 			intervals.append(time)
 	lastday = 7
@@ -47,6 +49,8 @@ def dumpCT(ct):
 				dump[count].append(timeslot(slot, typed, key))
 			count += 1
 	return dump
+def time_diff(time1, time2):
+	return abs(time1 - time2)//100 + abs(time1%100 - time2%100)/60.0;
 		
 def combinations(ct, types):
 	if not ct:
@@ -54,6 +58,28 @@ def combinations(ct, types):
 	results = []
 	dfs(types, 0, ct, [], results)
 	return results
+
+# combination: list of timeslots
+def hoursOnCampus(combination):
+	intervals = []
+	for slot in combination:
+		if slot.typed == 16:
+			continue
+		for time in slot.time:
+			intervals.append(time)
+	intervals = sorted(intervals)
+	daysMap = defaultdict(list)
+	for interval in intervals:
+		daysMap[interval[0]].append((interval[1], interval[2]))
+	numDays = len(daysMap)
+	time = 0
+	early = 100
+	for day in daysMap:
+		diff = time_diff(daysMap[day][-1][1], daysMap[day][0][0])
+		time += diff
+		time += 1
+		early-=day
+	return [time, numDays, early]	
 
 def dfs(num_type,index, ct, curr_com, results):
 	if index == num_type:
@@ -89,5 +115,6 @@ for com in combinations(dump, types(ct)):
 		string += str(slot)
 		string += ','
 	print(string)
+	print("time on campus", hoursOnCampus(com))
 cur.close()
 conn.close()
