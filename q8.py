@@ -21,6 +21,13 @@ CLASSTYPE = {
 	16: 'Web stream',
 	17: 'Work'
 	}
+class timeunit(object):
+	def __init__(self, code, time, typed):
+		self.time = time
+		self.typed = typed
+		self.course = code
+	def __str__(self):
+		return '    ' + self.course + ' ' + CLASSTYPE[self.typed] + ': ' + str(self.time[1]) + '-' + str(self.time[2])
 class timeslot(object):
 	def __init__(self, time, typed, course):
 		self.time = time
@@ -88,11 +95,12 @@ def hoursOnCampus(combination):
 			intervals.append(time)
 	intervals = sorted(intervals)
 	daysMap = defaultdict(list)
+	early = 100.0
 	for interval in intervals:
 		daysMap[interval[0]].append((interval[1], interval[2]))
+		early = early - interval[1]/10000 - interval[0]/100
 	numDays = len(daysMap)
 	time = 0
-	early = 100
 	for day in daysMap:
 		diff = time_diff(daysMap[day][-1][1], daysMap[day][0][0])
 		time += diff
@@ -138,12 +146,48 @@ for comb in combinat:
 	elif (hoursOnCampus(comb))[0] == smallest[0] and (hoursOnCampus(comb))[1] < smallest[1]:
 		smallest = hoursOnCampus(comb)
 		ret = comb
-	elif (hoursOnCampus(comb))[0] == smallest[0] and (hoursOnCampus(comb))[1] == smallest[1] and (hoursOnCampus(comb))[2] < smallest[2]:
+	elif (hoursOnCampus(comb))[0] == smallest[0] and (hoursOnCampus(comb))[1] == smallest[1] and (hoursOnCampus(comb))[2] > smallest[2]:
 		smallest = hoursOnCampus(comb)
 		ret = comb
+weekdays = defaultdict(list)
 for slot in ret:
-	print(str(slot))
-print(smallest) 
+	for time in slot.time:
+		weekdays[time[0]].append(timeunit(slot.course, time, slot.typed))
+for key in weekdays:
+	weekdays[key] = sorted(weekdays[key], key=lambda key: key.time)
+print("Total hours:", smallest[0])
+if len(weekdays[1]) > 0:
+	print("  Mon")
+	for cla in weekdays[1]:
+		print(str(cla))
+
+if len(weekdays[2]) > 0:
+	print("  Tue")
+	for cla in weekdays[2]:
+		print(str(cla))
+
+if len(weekdays[3]) > 0:
+	print("  Wed")
+	for cla in weekdays[3]:
+		print(str(cla))
+
+if len(weekdays[4]) > 0:
+	print("  Thu")
+	for cla in weekdays[4]:
+		print(str(cla))
+
+
+if len(weekdays[5]) > 0:
+	print("  Fri")
+	for cla in weekdays[5]:
+		print(str(cla))
+
+
+if len(weekdays[6]) > 0:
+	print("  Sat")
+	for cla in weekdays[6]:
+		print(str(cla))
+
 
 cur.close()
 conn.close()
