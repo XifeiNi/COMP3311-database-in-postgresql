@@ -2,6 +2,25 @@
 import sys
 from collections import defaultdict
 import cs3311
+CLASSTYPE = {
+	1: 'Class ?',
+	2: 'Course registration',
+	3: 'Distance',
+	4: 'Field trip',
+	5: 'Honours',
+	6: 'Independent study',
+	7: 'Lab class',
+	8: 'Lecture',
+	9: 'Other',
+	10: 'Project work',
+	11: 'Seminar',
+	12: 'Studio',
+	13: 'Thesis',
+	14: 'Tute/Lab',
+	15: 'Tutorial',
+	16: 'Web stream',
+	17: 'Work'
+	}
 class timeslot(object):
 	def __init__(self, time, typed, course):
 		self.time = time
@@ -108,13 +127,23 @@ for course in courses:
 	preprocess(course, ct, cur.fetchall())
 #print(ct)	
 dump = dumpCT(ct)
+combinat = combinations(dump, types(ct))
 
-for com in combinations(dump, types(ct)):
-	string = ""
-	for slot in com:
-		string += str(slot)
-		string += ','
-	print(string)
-	print("time on campus", hoursOnCampus(com))
+smallest = [1000, 1000, 1000]
+ret = None
+for comb in combinat:
+	if (hoursOnCampus(comb))[0] < smallest[0]:
+		smallest = hoursOnCampus(comb)
+		ret = comb
+	elif (hoursOnCampus(comb))[0] == smallest[0] and (hoursOnCampus(comb))[1] < smallest[1]:
+		smallest = hoursOnCampus(comb)
+		ret = comb
+	elif (hoursOnCampus(comb))[0] == smallest[0] and (hoursOnCampus(comb))[1] == smallest[1] and (hoursOnCampus(comb))[2] < smallest[2]:
+		smallest = hoursOnCampus(comb)
+		ret = comb
+for slot in ret:
+	print(str(slot))
+print(smallest) 
+
 cur.close()
 conn.close()
